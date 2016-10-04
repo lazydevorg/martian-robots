@@ -1,17 +1,27 @@
 (ns martian-robots.core
   (:gen-class))
 
-(def directions {:N [ 1  0]
-                 :E [ 0  1]
-                 :S [-1  0]
-                 :W [ 0 -1]})
+(def directions
+  "Offset for move the robot based on it's direction"
+  {:N [ 0  1]
+   :E [ 1  0]
+   :S [ 0 -1]
+   :W [-1 0]})
 
-(def rotations {:N [:W :E]
-                :E [:N :S]
-                :S [:E :W]
-                :W [:S :N]})
+(def rotations
+  "The key is the current direction and the values are the direction
+   in which the robot will be if it turns left (first value) or
+   right (second value)"
+  {:N [:W :E]
+   :E [:N :S]
+   :S [:E :W]
+   :W [:S :N]})
 
-(defn- move [{:keys [location direction] :as robot} op]
+(defn- move
+  "Apply a function to each pair of coordinates from the robot's location and
+   the `directions` hashmap. It works with a 3D coordinate system with no
+   code changes"
+  [{:keys [location direction] :as robot} op]
   (let [offset (get directions direction)]
     (->> location
          (interleave offset)
@@ -19,7 +29,8 @@
          (map (partial apply op))
          (assoc robot :location))))
 
-(defn move-forward [robot]
+(defn move-forward
+  [robot]
   (move robot +))
 
 (defn- rotate [robot direction]
@@ -32,11 +43,17 @@
 (defn rotate-right [robot]
   (rotate robot 1))
 
-(def instruction-fn {:F move-forward
-                     :R rotate-right
-                     :L rotate-left})
+(def instruction-fn
+  "Relation between the instructions and the handler functions"
+  {:F move-forward
+   :R rotate-right
+   :L rotate-left})
 
-(defn wrong-location? [{:keys [size] :as planet} location]
+(defn wrong-location?
+  "It returns true if the location is outside the planet boundaries.
+   It consider that the coordinates system could be more than 2
+   dimensions, as for the `move` function"
+  [{:keys [size] :as planet} location]
   (or (some #(< % 0) location)
       (->> location
            (interleave size)
@@ -52,17 +69,30 @@
 (defn fence? [{:keys [fences] :as planet} location]
   (contains? fences location))
 
-(defn check-lost-robot [planet {:keys [location] :as robot} execution-result]
+(defn check-lost-robot
+  "It checks if the execution-result (the robot after the execution of the
+   instruction) is outside the boundaries. If so it returns the initial
+   state of the robot (before the execution of the instruction) and
+   add the `:lost` field in case there isn't a fence in the location."
+  [planet {:keys [location] :as robot} execution-result]
   (if (robot-lost? planet execution-result)
     (assoc robot :lost (not (fence? planet location)))
     execution-result))
 
-(defn execution-fn [{:keys [lost] :as robot} instruction]
+(defn execution-fn
+  "Returns the execution function the `instruction`.
+   In case the robot is lost the `identity` function is returned
+   so that no action are executed on the robot"
+  [{:keys [lost] :as robot} instruction]
   (if-not lost
     (get instruction-fn instruction)
     identity))
 
-(defn execute-instruction [planet robot instruction]
+(defn execute-instruction
+  "Execute the instruction and check if the robot is lost.
+   It prints a message in case the instruction is not understood
+   and does not change the robot state"
+  [planet robot instruction]
   (if-let [execute (execution-fn robot instruction)]
     (->> robot
          execute
@@ -71,17 +101,23 @@
       (println "What do you mean by '" instruction "' ?")
       robot)))
 
-(defn run-robot [planet {:keys [instructions] :as robot}]
+(defn run-robot
+  "It execute all the instructions for a robot and return the final state"
+  [planet {:keys [instructions] :as robot}]
   (reduce (partial execute-instruction planet)
           robot
           instructions))
 
 (defn add-fence [planet {:keys [lost location] :as robot}]
+  "If the robot is lost it add a fence to the planet at the robot location"
   (if lost
     (update-in planet [:fences] conj location)
     planet))
 
-(defn run-planet [{:keys [robots] :as planet}]
+(defn run-planet
+  "It execute all the logic for every robots on the planet and update
+   it's state on every execution"
+  [{:keys [robots] :as planet}]
   (let [result-planet (assoc planet :robots [])]
     (reduce (fn [planet robot]
               (let [result-robot (run-robot planet robot)]
