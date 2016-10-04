@@ -1,36 +1,18 @@
 # martian-robots
 
-FIXME: description
-
-## Installation
-
-Download from http://example.com/FIXME.
-
 ## Usage
 
-FIXME: explanation
+Install [Leiningen](http://leiningen.org/)
 
-    $ java -jar martian-robots-0.1.0-standalone.jar [args]
+Execute the application with
 
-## Options
+> lein run
 
-FIXME: listing of options this app accepts.
+it will show the result of the simulation.
+The planet data structure is contained in the
+[core.clj](https://github.com/lazydevorg/martian-robots/blob/master/src/martian_robots/core.clj#L145)
+file. It can be modified to simulate different situations.
 
-## Examples
+Execute tests with
 
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
-
-## License
-
-Copyright © 2016 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+> lein test
