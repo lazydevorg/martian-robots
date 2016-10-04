@@ -1,8 +1,6 @@
 (defproject martian-robots "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
-  :license {:name "Eclipse Public License"
-            :url "http://www.eclipse.org/legal/epl-v10.html"}
+  :description "Scaring martian robots"
+  :url "https://github.com/lazydevorg/martian-robots"
   :dependencies [[org.clojure/clojure "1.8.0"]]
   :main ^:skip-aot martian-robots.core
   :target-path "target/%s"
